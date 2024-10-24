@@ -2,12 +2,15 @@
 
 import { getWeatherCondition, getWeatherIcon } from "../utils/utils";
 
-const CurrentWeather = ({ currentWeather, currentWeatherUnits }) => {
-  if (!currentWeather || !currentWeatherUnits) {
+const CurrentWeather = ({ weatherData }) => {
+  const current = weatherData?.current;
+  const units = weatherData?.current_units;
+
+  if (!current || !units) {
     return null;
   }
 
-  const weatherCondition = getWeatherCondition(currentWeather.weather_code);
+  const weatherCondition = getWeatherCondition(current.weather_code);
   const weatherIcon = getWeatherIcon(weatherCondition);
 
   return (
@@ -16,8 +19,7 @@ const CurrentWeather = ({ currentWeather, currentWeatherUnits }) => {
         <div className="bg-white bg-opacity-20 rounded-lg p-4 flex text-center col-span-2">
           <div className="flex-1 flex flex-col text-center items-center justify-center">
             <p className="text-4xl font-bold">
-              {Math.round(currentWeather.temperature_2m) +
-                currentWeatherUnits.temperature_2m}
+              {Math.round(current.temperature_2m) + units.temperature_2m}
             </p>
             <p className="text-2xl capitalize">{weatherCondition}</p>
           </div>
@@ -27,17 +29,11 @@ const CurrentWeather = ({ currentWeather, currentWeatherUnits }) => {
         </div>
         <div className="bg-white bg-opacity-20 rounded-lg p-4 flex flex-col items-center justify-center">
           <p className="font-semibold lg:text-xl">Precipitation</p>
-          <p>
-            {Math.round(currentWeather.precipitation) +
-              currentWeatherUnits.precipitation}
-          </p>
+          <p>{Math.round(current.precipitation) + units.precipitation}</p>
         </div>
         <div className="bg-white bg-opacity-20 rounded-lg p-4 flex flex-col items-center justify-center">
           <p className="font-semibold lg:text-xl">Wind Speed</p>
-          <p>
-            {Math.round(currentWeather.wind_speed_10m) +
-              currentWeatherUnits.wind_speed_10m}
-          </p>
+          <p>{Math.round(current.wind_speed_10m) + units.wind_speed_10m}</p>
         </div>
       </div>
     </section>

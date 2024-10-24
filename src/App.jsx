@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import SearchBar from "./components/SearchBar";
 import { API_BASE_URL } from "./utils/constants";
-import { getWeatherCondition } from "./utils/utils";
 import CurrentWeather from "./components/CurrentWeather";
 import LocationDetails from "./components/LocationDetails";
 import DailyForecast from "./components/DailyForecast";
@@ -13,23 +12,6 @@ const App = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const currentWeather = weatherData?.current;
-  const currentWeatherUnits = weatherData?.current_units;
-
-  const dailyForecast = weatherData
-    ? weatherData.daily.time.map((date, index) => ({
-        date: new Date(date),
-        maxTemp: Math.round(weatherData.daily.temperature_2m_max[index]),
-        minTemp: Math.round(weatherData.daily.temperature_2m_min[index]),
-        weatherCondition: getWeatherCondition(
-          weatherData.daily.weather_code[index]
-        ),
-        maxPrecipitationProbability:
-          weatherData.daily.precipitation_probability_max[index],
-      }))
-    : null;
-  const dailyForecastUnits = weatherData?.daily_units;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -75,14 +57,8 @@ const App = () => {
           {weatherData && (
             <>
               <LocationDetails location={location} />
-              <CurrentWeather
-                currentWeather={currentWeather}
-                currentWeatherUnits={currentWeatherUnits}
-              />
-              <DailyForecast
-                forecasts={dailyForecast}
-                units={dailyForecastUnits}
-              />
+              <CurrentWeather weatherData={weatherData} />
+              <DailyForecast weatherData={weatherData} />
             </>
           )}
         </div>
