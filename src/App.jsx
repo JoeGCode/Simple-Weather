@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import CurrentWeatherDetailGrid from "./components/CurrentWeatherDetailGrid";
+import DailyForecast from "./components/DailyForecast";
+import Footer from "./components/Footer";
+import Loader from "./components/Loader";
+import MainInfo from "./components/MainInfo";
 import SearchBar from "./components/SearchBar";
 import { API_BASE_URL } from "./utils/constants";
-import CurrentWeather from "./components/CurrentWeather";
-import LocationDetails from "./components/LocationDetails";
-import DailyForecast from "./components/DailyForecast";
-import Loader from "./components/Loader";
-import Footer from "./components/Footer";
 
 const App = () => {
   const [location, setLocation] = useState(null);
@@ -18,11 +18,24 @@ const App = () => {
     const fetchWeatherData = async () => {
       setIsLoading(true);
       setError(null);
+      const requestParams = new URLSearchParams({
+        latitude: location.latitude.toString(),
+        longitude: location.longitude.toString(),
+        current:
+          "temperature_2m,apparent_temperature,is_day,precipitation,weather_code,relative_humidity_2m,wind_speed_10m",
+        daily:
+          "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum",
+        timezone: location.timezone || "auto",
+        forecast_days: "7",
+      });
       try {
         const response = await fetch(
-          `${API_BASE_URL}?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max`,
-          { signal: controller.signal }
+          `${API_BASE_URL}?${requestParams.toString()}`,
+          { signal: controller.signal },
         );
+        if (!response.ok) {
+          throw new Error("Weather response error! Status: " + response.status);
+        }
         const weatherData = await response.json();
         setWeatherData(weatherData);
       } catch (error) {
@@ -45,21 +58,21 @@ const App = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-purple-950 flex flex-col">
-      <div className="flex-grow p-4 w-full flex items-center justify-center">
-        <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-4 max-w-screen-xl w-full">
-          <h1 className="text-3xl font-bold text-center mb-8">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-purple-700 to-purple-950">
+      <div className="flex w-full flex-grow items-center justify-center p-4">
+        <div className="w-full max-w-screen-md rounded-lg bg-white bg-opacity-20 p-4 backdrop-blur-lg">
+          <h1 className="mb-8 text-center text-3xl font-bold">
             Simple Weather
           </h1>
           <SearchBar setLocation={setLocation} />
           {isLoading && <Loader />}
           {error && <p className="text-red-500">{error}</p>}
           {weatherData && (
-            <>
-              <LocationDetails location={location} />
-              <CurrentWeather weatherData={weatherData} />
+            <div className="space-y-4">
+              <MainInfo location={location} weatherData={weatherData} />
+              <CurrentWeatherDetailGrid weatherData={weatherData} />
               <DailyForecast weatherData={weatherData} />
-            </>
+            </div>
           )}
         </div>
       </div>
