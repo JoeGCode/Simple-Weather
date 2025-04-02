@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { MdRefresh } from "react-icons/md";
 import CurrentWeatherDetailGrid from "./components/CurrentWeatherDetailGrid";
 import DailyForecast from "./components/DailyForecast";
 import Footer from "./components/Footer";
@@ -13,9 +14,8 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const fetchWeatherData = async () => {
+  const fetchWeatherData = useCallback(
+    async (abortController) => {
       setIsLoading(true);
       setError(null);
       const requestParams = new URLSearchParams({
@@ -31,7 +31,7 @@ const App = () => {
       try {
         const response = await fetch(
           `${API_BASE_URL}?${requestParams.toString()}`,
-          { signal: controller.signal },
+          { signal: abortController.signal },
         );
         if (!response.ok) {
           throw new Error("Weather response error! Status: " + response.status);
@@ -48,14 +48,26 @@ const App = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+    },
+    [location],
+  );
+
+  const handleRefresh = () => {
     if (location) {
-      fetchWeatherData();
+      const abortController = new AbortController();
+      fetchWeatherData(abortController);
+    }
+  };
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    if (location) {
+      fetchWeatherData(abortController);
     }
     return () => {
-      controller.abort();
+      abortController.abort();
     };
-  }, [location]);
+  }, [location, fetchWeatherData]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-purple-700 to-purple-950">
@@ -69,6 +81,13 @@ const App = () => {
           {error && <p className="text-red-500">{error}</p>}
           {weatherData && (
             <div className="space-y-4">
+              {location && (
+                <div className="flex w-full items-center justify-center">
+                  <button onClick={handleRefresh}>
+                    <MdRefresh size={36} />
+                  </button>
+                </div>
+              )}
               <MainInfo location={location} weatherData={weatherData} />
               <CurrentWeatherDetailGrid weatherData={weatherData} />
               <DailyForecast weatherData={weatherData} />

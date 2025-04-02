@@ -67,7 +67,7 @@ const SearchBar = ({ setLocation }) => {
 
   return (
     <>
-      <div className="relative mb-8">
+      <div className="relative mb-4">
         <input
           type="text"
           value={search}
